@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"blog/go-backend/database"
 	"blog/go-backend/handlers"
@@ -24,5 +25,9 @@ func main() {
     handler := handlers.CORSMiddleware(mux)
 
     log.Println("Server listening on :8080")
-    log.Fatal(http.ListenAndServe(":8080", handler))
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8080"
+    }
+    log.Fatal(http.ListenAndServe(":"+port, handler))
 }
