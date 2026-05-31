@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-    if err := database.InitDB("./blog.db"); err != nil {
+    if err := database.InitDB(); err != nil {
         log.Fatal(err)
     }
     defer database.DB.Close()
