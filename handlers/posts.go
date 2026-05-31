@@ -43,7 +43,7 @@ func GetPost(w http.ResponseWriter, r *http.Request) {
     }
 
     var p models.Post
-    err = database.DB.QueryRow("SELECT id, title, content FROM posts WHERE id = ?", id).
+    err = database.DB.QueryRow("SELECT id, title, content FROM posts WHERE id = $1", id).
         Scan(&p.ID, &p.Title, &p.Content)
     if err == sql.ErrNoRows {
         http.Error(w, "not found", http.StatusNotFound)
@@ -69,14 +69,14 @@ func CreatePost(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    result, err := database.DB.Exec("INSERT INTO posts (title, content) VALUES (?, ?)", p.Title, p.Content)
+    err := database.DB.QueryRow(
+        "INSERT INTO posts (title, content) VALUES ($1, $2) RETURNING id",
+        p.Title, p.Content,
+    ).Scan(&p.ID)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
     }
-
-    id, _ := result.LastInsertId()
-    p.ID = int(id)
 
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
@@ -98,7 +98,7 @@ func UpdatePost(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    _, err = database.DB.Exec("UPDATE posts SET title = ?, content = ? WHERE id = ?", p.Title, p.Content, id)
+    _, err = database.DB.Exec("UPDATE posts SET title = $1, content = $2 WHERE id = $3", p.Title, p.Content, id)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
@@ -118,7 +118,7 @@ func DeletePost(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    _, err = database.DB.Exec("DELETE FROM posts WHERE id = ?", id)
+    _, err = database.DB.Exec("DELETE FROM posts WHERE id = $1", id)
     if err != nil {
         http.Error(w, err.Error(), http.StatusInternalServerError)
         return
