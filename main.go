@@ -11,9 +11,10 @@ import (
 
 func main() {
     if err := database.InitDB(); err != nil {
-        log.Fatal(err)
+        log.Printf("WARNING: Database unavailable (%v) — running without DB", err)
+    } else {
+        defer database.DB.Close()
     }
-    defer database.DB.Close()
 
     mux := http.NewServeMux()
     mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
@@ -25,6 +26,7 @@ func main() {
     mux.HandleFunc("POST /api/posts", handlers.CreatePost)
     mux.HandleFunc("PUT /api/posts/{id}", handlers.UpdatePost)
     mux.HandleFunc("DELETE /api/posts/{id}", handlers.DeletePost)
+    mux.HandleFunc("GET /api/md/{slug}", handlers.GetMDFromGitHub)
 
     handler := handlers.CORSMiddleware(mux)
 
