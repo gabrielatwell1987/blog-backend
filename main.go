@@ -16,6 +16,10 @@ func main() {
     defer database.DB.Close()
 
     mux := http.NewServeMux()
+    mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "application/json")
+        w.Write([]byte(`{"message": "Blog Backend (Go) is running! ✅", "status": "ok"}`))
+    })
     mux.HandleFunc("GET /api/posts", handlers.GetPosts)
     mux.HandleFunc("GET /api/posts/{id}", handlers.GetPost)
     mux.HandleFunc("POST /api/posts", handlers.CreatePost)
